@@ -1,5 +1,5 @@
 server:
-  port: 8191
+  port: 9191
 
 spring:
   application:
@@ -8,11 +8,11 @@ spring:
     gateway:
       routes:
         - id: USER-SERVICE
-          uri : lb://USER-SERVICE
+          uri: lb://USER-SERVICE
           predicates:
             - Path=/users/**
           filters:
-            - name : CircuitBreaker
+            - name: CircuitBreaker
               args:
                 name: USER-SERVICE
                 fallbackuri: forward:/userServiceFallBack
@@ -26,19 +26,40 @@ spring:
                 name: DEPARTMENT-SERVICE
                 fallbackuri: forward:/departmentServiceFallBack
 
-hystrix:
-  command:
-    fallbackcmd:
-      execution:
-        isolation:
-           thread:
-            timeoutInMilliseconds: 4000
-
 management:
+  health:
+    circuitbreakers:
+      enabled: true
   endpoints:
     web:
       exposure:
-        include: hystrix.stream
+        include: health
+  endpoint:
+    health:
+      show-details: always
+
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      slidingWindowSize: 4
+      permittedNumberOfCallsInHalfOpenState: 10
+      waitDurationInOpenState: 10000
+      failureRateThreshold: 60
+      eventConsumerBufferSize: 10
+      registerHealthIndicator: true
+    someShared:
+      slidingWindowSize: 3
+      permittedNumberOfCallsInHalfOpenState: 10
+  instances:
+    user-service:
+      baseConfig: default
+      waitDurationInOpenState: 500000
+    departmentService:
+      baseConfig: default
+      waitDurationInOpenState: 500000
+    backendB:
+      baseConfig: someShared
+
 
 
 eureka:

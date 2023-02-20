@@ -1,19 +1,24 @@
 package com.springboot.cloudgateway;
 
-
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class FallBackMethodController {
-//    @HystrixCommand
     @GetMapping("/userServiceFallBack")
+    @CircuitBreaker(name="userService", fallbackMethod = "userServiceFallbackMethod")
     public String userServiceFallBackMethod(){
-        return "User Service is taking longer than Expected , Please try again later";
+        return "User Service is taking longer than expected."+
+                " Please Try again later";
+
     }
+
     @GetMapping("/departmentServiceFallBack")
+    @CircuitBreaker(name="departmentService", fallbackMethod = "departmentServiceFallbackMethod")
     public String departmentServiceFallBackMethod(){
-        return "Department Service is taking longer than Expected , Please try again later";
+        return "Department Service is taking longer than expected."+
+                " Please Try again later";
+
     }
 }
